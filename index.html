@@ -68,6 +68,11 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 .item-name { font-size: 14px; font-weight: 500; }
 .store-badge { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--surface3); color: var(--text-secondary); display: flex; align-items: center; gap: 3px; }
 .pricey-badge { font-size: 10px; padding: 2px 7px; border-radius: 99px; background: rgba(226,75,74,0.15); color: #f09595; }
+.trend-chip { font-size: 10px; padding: 2px 8px; border-radius: 99px; border: none; cursor: pointer; font-family: var(--font);
+  display: inline-flex; align-items: center; gap: 3px; }
+.trend-chip.up { background: rgba(226,75,74,0.15); color: #f09595; }
+.trend-chip.down { background: rgba(45,212,160,0.14); color: #6ee7c4; }
+.trend-chip.flat { background: var(--surface3); color: var(--text-secondary); }
 .item-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.6; }
 .bar-row { display: flex; align-items: center; gap: 10px; }
 .bar-track { height: 5px; background: var(--surface3); border-radius: 99px; overflow: hidden; flex: 1; }
@@ -123,6 +128,17 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
   background: var(--surface3); border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; padding: 0; }
 .icon-opt[aria-checked="true"] { border-color: var(--pick); color: var(--pick); background: var(--surface1); }
 
+.hist-sub { font-size: 12px; color: var(--text-muted); }
+.spark-wrap { background: var(--surface1); border-radius: var(--radius); padding: 12px 12px 8px; }
+.spark-wrap svg { display: block; width: 100%; height: auto; }
+.spark-cap { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+.hist-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.hist-table th { text-align: left; font-weight: 400; color: var(--text-muted); font-size: 11px; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.hist-table th.num, .hist-table td.num { text-align: right; white-space: nowrap; }
+.hist-table td { padding: 8px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+.hist-table tr.current td { color: var(--text-primary); }
+.hist-scroll { overflow-x: auto; }
+
 .btn-danger { background: none; border: 1px solid rgba(226,75,74,0.4); border-radius: var(--radius); padding: 9px 16px;
   font-size: 13px; color: #f09595; cursor: pointer; font-family: var(--font); margin-right: auto; }
 .btn-danger:hover { border-color: #f09595; }
@@ -143,6 +159,7 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 
 @media (max-width: 400px) {
   .field-row { grid-template-columns: 1fr; }
+  .hist-table th, .hist-table td { padding: 7px 5px; font-size: 11px; }
 }
 </style>
 </head>
@@ -247,6 +264,19 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
       <button class="btn-danger" id="catDeleteBtn" hidden onclick="askDeleteCat()">削除</button>
       <button class="btn-cancel" onclick="closeCatModal()">キャンセル</button>
       <button class="btn-save" id="catSaveBtn" onclick="saveCat()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="histOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="histTitle">
+    <div class="modal-header">
+      <span class="modal-title" id="histTitle">単価の推移</span>
+      <button class="modal-close" aria-label="閉じる" onclick="closeHistory()"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body" id="histBody"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeHistory()">閉じる</button>
     </div>
   </div>
 </div>
@@ -364,6 +394,90 @@ function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// --- 同一商品の価格推移 ---
+
+// 商品名と店舗名で同じ商品とみなす（全角空白と大小文字の差は無視）
+function norm(s) { return String(s||'').replace(/[\s　]+/g, ' ').trim().toLowerCase(); }
+function histKey(i) { return `${norm(i.name)}|${norm(i.store)}`; }
+function itemTime(i) { return new Date(i.datetime || i.addedAt || 0).getTime() || 0; }
+
+// キーごとに、古い順に並べた記録をまとめる
+function historyGroups(list) {
+  const g = new Map();
+  list.forEach(i => {
+    const k = histKey(i);
+    if (!g.has(k)) g.set(k, []);
+    g.get(k).push(i);
+  });
+  g.forEach(arr => arr.sort((a,b) => itemTime(a)-itemTime(b)));
+  return g;
+}
+
+// 単系列・時系列なので折れ線。凡例は持たず、直接ラベルは最新の点だけに付ける。
+function sparkline(points, color) {
+  const W = 300, H = 72, padX = 12, padT = 14, padB = 12;
+  const us = points.map(p => p.unitPrice || 0);
+  const min = Math.min(...us), max = Math.max(...us);
+  const span = (max - min) || Math.max(max, 1);
+  const n = points.length;
+  const x = i => n === 1 ? W/2 : padX + i*(W - 2*padX)/(n - 1);
+  const y = v => (max === min) ? H/2 : H - padB - ((v - min)/span)*(H - padT - padB);
+
+  const d = points.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(p.unitPrice||0).toFixed(1)}`).join(' ');
+  const dots = points.map((p, i) => {
+    const last = i === n - 1;
+    return `<circle cx="${x(i).toFixed(1)}" cy="${y(p.unitPrice||0).toFixed(1)}" r="${last ? 4.5 : 3.5}"
+      fill="${last ? color : 'var(--surface1)'}" stroke="${color}" stroke-width="2">
+      <title>${esc(fmtDatetime(p.datetime) || '日時なし')}：${(p.unitPrice||0).toFixed(2)}</title></circle>`;
+  }).join('');
+  const lx = x(n-1), ly = y(us[n-1]);
+  const label = `<text x="${(lx > W*0.7 ? lx - 6 : lx + 6).toFixed(1)}" y="${Math.max(11, ly - 9).toFixed(1)}"
+    text-anchor="${lx > W*0.7 ? 'end' : 'start'}" fill="var(--text-primary)" font-size="11"
+    font-family="var(--font)">${us[n-1].toFixed(2)}</text>`;
+
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="単価の推移（${n}件、最安 ${min.toFixed(2)}／最高 ${max.toFixed(2)}）">
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}${label}
+  </svg>`;
+}
+
+function openHistory(id) {
+  const item = (db[activeCat]||[]).find(i => i.id === id);
+  if (!item) return;
+  const c = cat();
+  const group = historyGroups(items()).get(histKey(item)) || [item];
+  lastFocused = document.activeElement;
+
+  document.getElementById('histTitle').textContent = item.name;
+  const us = group.map(i => i.unitPrice || 0);
+  const min = Math.min(...us), max = Math.max(...us);
+  const rows = [...group].reverse().map(i => `<tr class="${i.id===item.id?'current':''}">
+    <td>${esc(fmtDatetime(i.datetime) || '—')}</td>
+    <td class="num">${parseFloat(i.price).toLocaleString()}円</td>
+    <td class="num">${c.type==='rolls' ? `${esc(i.rolls)}×${esc(i.meters)}m` : `${esc(i.qty)}${esc(c.unitLabel)}`}</td>
+    <td class="num">${(i.unitPrice||0).toFixed(2)}</td>
+  </tr>`).join('');
+
+  document.getElementById('histBody').innerHTML = `
+    <div class="hist-sub">${item.store ? esc(item.store) + '／' : ''}${group.length}件の記録</div>
+    <div class="spark-wrap">
+      ${sparkline(group, c.color)}
+      <div class="spark-cap">最安 ${min.toFixed(2)} ／ 最高 ${max.toFixed(2)}（${c.priceUnit}）・左が古い記録</div>
+    </div>
+    <div class="hist-scroll"><table class="hist-table">
+      <thead><tr><th>購入日時</th><th class="num">価格</th><th class="num">内容量</th><th class="num">単価</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+
+  document.getElementById('histOverlay').classList.add('open');
+  setTimeout(() => document.querySelector('#histOverlay .modal-close').focus(), 50);
+}
+
+function closeHistory() {
+  document.getElementById('histOverlay').classList.remove('open');
+  restoreFocus();
+}
+
 function renderTabs() {
   const tabs = CATS.map(c => {
     const count = (db[c.id] || []).length;
@@ -401,6 +515,7 @@ function renderMain() {
   const bestId = byUnit[0]?.id;
   const priceyId = byUnit[n-1]?.id;
   const unitRank = new Map(byUnit.map((i, idx) => [i.id, idx+1]));
+  const groups = historyGroups(items());
 
   let html = '';
 
@@ -436,6 +551,26 @@ function renderMain() {
         : `${parseFloat(item.price).toLocaleString()}円 ／ ${item.qty}${c.unitLabel}`;
       const dtStr = item.datetime ? fmtDatetime(item.datetime) : '';
 
+      // 同じ商品名・店舗の記録が複数あるときだけ、ひとつ前の記録との差を出す
+      const group = groups.get(histKey(item)) || [];
+      let trend = '';
+      if (group.length > 1) {
+        const pos = group.indexOf(item);
+        const prev = pos > 0 ? group[pos-1] : null;
+        const prevU = prev && prev.unitPrice;
+        if (prevU > 0) {
+          const pct = ((u - prevU) / prevU) * 100;
+          const cls = Math.abs(pct) < 0.5 ? 'flat' : pct > 0 ? 'up' : 'down';
+          const text = cls === 'flat' ? '前回比 ±0%' : `前回比 ${pct > 0 ? '+' : '−'}${Math.abs(pct).toFixed(0)}%`;
+          const arrow = cls === 'flat' ? 'ti-minus' : cls === 'up' ? 'ti-arrow-up-right' : 'ti-arrow-down-right';
+          trend = `<button class="trend-chip ${cls}" onclick="openHistory('${item.id}')" title="単価の推移を見る">
+            <i class="ti ${arrow}" style="font-size:11px" aria-hidden="true"></i>${text}</button>`;
+        } else {
+          trend = `<button class="trend-chip flat" onclick="openHistory('${item.id}')" title="単価の推移を見る">
+            <i class="ti ti-chart-line" style="font-size:11px" aria-hidden="true"></i>推移${group.length}件</button>`;
+        }
+      }
+
       html += `<div class="item-card ${isBest?'best':''}">
         ${isBest ? '<div class="best-badge">最安値</div>' : ''}
         <div class="item-inner">
@@ -445,6 +580,7 @@ function renderMain() {
               <span class="item-name">${esc(item.name)}</span>
               ${item.store ? `<span class="store-badge"><i class="ti ti-building-store" style="font-size:11px" aria-hidden="true"></i>${esc(item.store)}</span>` : ''}
               ${isPricey ? '<span class="pricey-badge">割高</span>' : ''}
+              ${trend}
             </div>
             <div class="item-meta">
               ${meta}${item.note ? ' • '+esc(item.note) : ''}
@@ -767,7 +903,7 @@ function restoreFocus() {
 
 // 開いているオーバーレイのうち最も手前のもの（確認ダイアログが他より上）
 function topOverlay() {
-  for (const id of ['confirmOverlay', 'catOverlay', 'modalOverlay']) {
+  for (const id of ['confirmOverlay', 'catOverlay', 'histOverlay', 'modalOverlay']) {
     const el = document.getElementById(id);
     if (el.classList.contains('open')) return el;
   }
@@ -777,6 +913,7 @@ function topOverlay() {
 function closeOverlay(id) {
   if (id === 'confirmOverlay') closeConfirm();
   else if (id === 'catOverlay') closeCatModal();
+  else if (id === 'histOverlay') closeHistory();
   else closeModal();
 }
 
@@ -830,6 +967,7 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
 });
 document.getElementById('modalOverlay').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
 document.getElementById('catOverlay').addEventListener('click', function(e) { if(e.target===this) closeCatModal(); });
+document.getElementById('histOverlay').addEventListener('click', function(e) { if(e.target===this) closeHistory(); });
 document.getElementById('confirmOverlay').addEventListener('click', function(e) { if(e.target===this) closeConfirm(); });
 
 applyTheme(CATS[0]);
