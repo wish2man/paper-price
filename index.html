@@ -26,6 +26,8 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 .topbar { background: var(--surface1); border-bottom: 1px solid var(--border); padding: 14px 16px 0; position: sticky; top: 0; z-index: 10; }
 .topbar-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .app-title { font-size: 17px; font-weight: 500; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.topbar-actions .icon-btn { padding: 7px 9px; font-size: 16px; }
 .tabs { display: flex; overflow-x: auto; gap: 0; scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
 .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 14px; background: none; border: none; border-bottom: 2.5px solid transparent; cursor: pointer; font-family: var(--font); white-space: nowrap; transition: border-color 0.15s; min-width: 64px; }
@@ -35,6 +37,8 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 .tab.active { border-bottom-color: var(--tc); }
 .tab .tab-count { font-size: 10px; padding: 1px 7px; border-radius: 99px; background: var(--surface3); color: var(--text-muted); }
 .tab.active .tab-count { background: var(--tbg); color: var(--tt); }
+.tab-add .tab-icon, .tab-add .tab-label { color: var(--text-muted); }
+.tab-add:hover .tab-icon, .tab-add:hover .tab-label { color: var(--text-secondary); }
 
 .body { padding: 16px; max-width: 680px; width: 100%; margin: 0 auto; }
 
@@ -108,6 +112,20 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 .calc-unit { font-size: 13px; color: var(--tt); }
 .form-hint { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
 .form-hint:empty { display: none; }
+.field-note { font-size: 11px; color: var(--text-muted); }
+.field-note:empty { display: none; }
+
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatch { width: 30px; height: 30px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; padding: 0; }
+.swatch[aria-checked="true"] { border-color: var(--text-primary); }
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 6px; }
+.icon-opt { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 18px; border-radius: 8px;
+  background: var(--surface3); border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; padding: 0; }
+.icon-opt[aria-checked="true"] { border-color: var(--pick); color: var(--pick); background: var(--surface1); }
+
+.btn-danger { background: none; border: 1px solid rgba(226,75,74,0.4); border-radius: var(--radius); padding: 9px 16px;
+  font-size: 13px; color: #f09595; cursor: pointer; font-family: var(--font); margin-right: auto; }
+.btn-danger:hover { border-color: #f09595; }
 .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
 .btn-cancel { background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 9px 20px; font-size: 13px; color: var(--text-secondary); cursor: pointer; font-family: var(--font); }
 .btn-save { border: none; border-radius: var(--radius); padding: 9px 24px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: var(--font); background: var(--tc); color: #fff; transition: opacity 0.15s; }
@@ -133,9 +151,14 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
   <div class="topbar" id="topbar">
     <div class="topbar-row">
       <span class="app-title">単価かんたん比較</span>
-      <button class="add-btn" id="addBtn" onclick="openAdd()">
-        <i class="ti ti-plus" aria-hidden="true"></i>追加
-      </button>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="catEditBtn" aria-label="カテゴリを編集" hidden onclick="openCatEdit()">
+          <i class="ti ti-settings" aria-hidden="true"></i>
+        </button>
+        <button class="add-btn" id="addBtn" onclick="openAdd()">
+          <i class="ti ti-plus" aria-hidden="true"></i>追加
+        </button>
+      </div>
     </div>
     <div class="tabs" id="tabsEl"></div>
   </div>
@@ -187,6 +210,47 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
   </div>
 </div>
 
+<div class="modal-overlay" id="catOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="catTitle">
+    <div class="modal-header">
+      <span class="modal-title" id="catTitle">カテゴリを追加</span>
+      <button class="modal-close" aria-label="閉じる" onclick="closeCatModal()"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label for="cName">カテゴリ名 *</label>
+        <input id="cName" type="text" maxlength="12" placeholder="例：洗剤">
+      </div>
+      <div class="field">
+        <label for="cType">計算方式</label>
+        <select id="cType">
+          <option value="simple">数量で割る（例：1袋30回ぶん）</option>
+          <option value="rolls">ロール数 × 長さで割る（円/m）</option>
+        </select>
+      </div>
+      <div class="field" id="cUnitField">
+        <label for="cUnit">単位 *</label>
+        <input id="cUnit" type="text" maxlength="6" placeholder="例：回">
+        <span class="field-note" id="cUnitNote"></span>
+      </div>
+      <div class="field">
+        <label id="cColorLabel">色</label>
+        <div class="swatches" id="cColors" role="radiogroup" aria-labelledby="cColorLabel"></div>
+      </div>
+      <div class="field">
+        <label id="cIconLabel">アイコン</label>
+        <div class="icon-grid" id="cIcons" role="radiogroup" aria-labelledby="cIconLabel"></div>
+      </div>
+      <div class="form-hint" id="catHint" role="status" aria-live="polite"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" id="catDeleteBtn" hidden onclick="askDeleteCat()">削除</button>
+      <button class="btn-cancel" onclick="closeCatModal()">キャンセル</button>
+      <button class="btn-save" id="catSaveBtn" onclick="saveCat()">保存</button>
+    </div>
+  </div>
+</div>
+
 <div class="confirm-overlay" id="confirmOverlay">
   <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
     <div class="confirm-icon"><i class="ti ti-trash" aria-hidden="true"></i></div>
@@ -200,7 +264,7 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 </div>
 
 <script>
-const CATS = [
+const BUILTIN_CATS = [
   { id:'tissue',  label:'ティッシュ',       icon:'ti-box',       priceUnit:'円/組',  unitLabel:'組',  unitHelp:'1箱の組数（例：200）', type:'simple',
     color:'#5b9cf6', bg:'rgba(91,156,246,0.12)', border:'rgba(91,156,246,0.3)', text:'#8eb8fa' },
   { id:'toilet',  label:'トイレット',        icon:'ti-roll',      priceUnit:'円/m',   unitLabel:'m',   unitHelp:'', type:'rolls',
@@ -213,18 +277,51 @@ const CATS = [
     color:'#a89fc8', bg:'rgba(168,159,200,0.12)', border:'rgba(168,159,200,0.3)', text:'#c4bedd' },
 ];
 
+// ユーザー定義カテゴリで選べる配色。applyTheme が使う4値をまとめて持つ。
+const PALETTE = [
+  { name:'青',   color:'#5b9cf6', bg:'rgba(91,156,246,0.12)',  border:'rgba(91,156,246,0.3)',  text:'#8eb8fa' },
+  { name:'緑',   color:'#2dd4a0', bg:'rgba(45,212,160,0.12)',  border:'rgba(45,212,160,0.3)',  text:'#6ee7c4' },
+  { name:'橙',   color:'#f07a52', bg:'rgba(240,122,82,0.12)',  border:'rgba(240,122,82,0.3)',  text:'#f5a382' },
+  { name:'黄',   color:'#e6b84a', bg:'rgba(230,184,74,0.12)',  border:'rgba(230,184,74,0.3)',  text:'#f0d080' },
+  { name:'紫',   color:'#a89fc8', bg:'rgba(168,159,200,0.12)', border:'rgba(168,159,200,0.3)', text:'#c4bedd' },
+  { name:'桃',   color:'#e86a9b', bg:'rgba(232,106,155,0.12)', border:'rgba(232,106,155,0.3)', text:'#f097ba' },
+  { name:'水色', color:'#4fb8d8', bg:'rgba(79,184,216,0.12)',  border:'rgba(79,184,216,0.3)',  text:'#8ad2e8' },
+  { name:'黄緑', color:'#8fc44a', bg:'rgba(143,196,74,0.12)',  border:'rgba(143,196,74,0.3)',  text:'#b4d983' },
+];
+
+const ICON_CHOICES = [
+  'ti-package','ti-box','ti-bottle','ti-droplet','ti-cup','ti-coffee',
+  'ti-apple','ti-bread','ti-milk','ti-egg','ti-meat','ti-fish',
+  'ti-shopping-bag','ti-shopping-cart','ti-paw','ti-pill','ti-leaf','ti-flame',
+];
+
 const STORAGE_KEY = 'paper_price_v3';
+const CAT_KEY = 'paper_price_cats_v1';
+
 let db = {};
 try { db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) {}
 function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); } catch(e) {} }
 
+// カテゴリ定義は別キーに保存し、db は {カテゴリid: [記録]} のまま変更しない
+let userCats = [];
+try { userCats = JSON.parse(localStorage.getItem(CAT_KEY) || '[]'); } catch(e) {}
+if (!Array.isArray(userCats)) userCats = [];
+function persistCats() { try { localStorage.setItem(CAT_KEY, JSON.stringify(userCats)); } catch(e) {} }
+
+let CATS = [];
+function rebuildCats() { CATS = [...BUILTIN_CATS, ...userCats]; }
+rebuildCats();
+
 let activeCat = CATS[0].id;
 let sortBy = 'unitPrice';
 let editId = null;
-let deleteTarget = null;
 let lastFocused = null;
+let confirmHandler = null;
+let catEditId = null;
+let catDraft = { colorIdx: 0, icon: 'ti-package' };
 
-function cat() { return CATS.find(c => c.id === activeCat); }
+function cat() { return CATS.find(c => c.id === activeCat) || BUILTIN_CATS[0]; }
+function isUserCat(c) { return !BUILTIN_CATS.some(b => b.id === c.id); }
 function items() { return db[activeCat] || []; }
 
 function applyTheme(c) {
@@ -268,15 +365,21 @@ function esc(s) {
 }
 
 function renderTabs() {
-  document.getElementById('tabsEl').innerHTML = CATS.map(c => {
+  const tabs = CATS.map(c => {
     const count = (db[c.id] || []).length;
     const active = c.id === activeCat ? 'active' : '';
     return `<button class="tab ${active}" style="--tc:${c.color};--tbg:${c.bg};--tt:${c.text}" onclick="switchTab('${c.id}')">
-      <i class="ti ${c.icon} tab-icon" aria-hidden="true"></i>
-      <span class="tab-label">${c.label}</span>
+      <i class="ti ${esc(c.icon)} tab-icon" aria-hidden="true"></i>
+      <span class="tab-label">${esc(c.label)}</span>
       ${count > 0 ? `<span class="tab-count">${count}件</span>` : ''}
     </button>`;
-  }).join('');
+  });
+  tabs.push(`<button class="tab tab-add" aria-label="カテゴリを追加" onclick="openCatAdd()">
+    <i class="ti ti-plus tab-icon" aria-hidden="true"></i>
+    <span class="tab-label">追加</span>
+  </button>`);
+  document.getElementById('tabsEl').innerHTML = tabs.join('');
+  document.getElementById('catEditBtn').hidden = !isUserCat(cat());
 }
 
 function renderMain() {
@@ -502,28 +605,154 @@ function saveItem() {
   render();
 }
 
+// 商品にもカテゴリにも使える確認ダイアログ
+function askConfirm(title, body, onYes) {
+  lastFocused = document.activeElement;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmBody').textContent = body;
+  confirmHandler = onYes;
+  document.getElementById('confirmOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('confirmDeleteBtn').focus(), 50);
+}
+
 function confirmDelete(id) {
   const item = (db[activeCat]||[]).find(i=>i.id===id);
   if (!item) return;
-  deleteTarget = id;
-  lastFocused = document.activeElement;
-  document.getElementById('confirmBody').textContent = `「${item.name}」を削除します。この操作は取り消せません。`;
-  document.getElementById('confirmDeleteBtn').onclick = () => { doDelete(); };
-  document.getElementById('confirmOverlay').classList.add('open');
-}
-
-function doDelete() {
-  if (!deleteTarget) return;
-  db[activeCat] = (db[activeCat]||[]).filter(i=>i.id!==deleteTarget);
-  persist();
-  closeConfirm();
-  render();
+  askConfirm('この商品を削除しますか？', `「${item.name}」を削除します。この操作は取り消せません。`, () => {
+    db[activeCat] = (db[activeCat]||[]).filter(i=>i.id!==id);
+    persist();
+    render();
+  });
 }
 
 function closeConfirm() {
   document.getElementById('confirmOverlay').classList.remove('open');
-  deleteTarget = null;
+  confirmHandler = null;
   restoreFocus();
+}
+
+// --- カテゴリの追加・編集 ---
+
+function newCatId() {
+  return 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function renderCatPickers() {
+  document.getElementById('cColors').innerHTML = PALETTE.map((p, i) =>
+    `<button type="button" class="swatch" role="radio" aria-checked="${i===catDraft.colorIdx}" aria-label="${p.name}"
+      style="background:${p.color}" onclick="pickCatColor(${i})"></button>`).join('');
+  document.getElementById('cIcons').innerHTML = ICON_CHOICES.map(ic =>
+    `<button type="button" class="icon-opt" role="radio" aria-checked="${ic===catDraft.icon}" aria-label="${esc(ic)}"
+      style="--pick:${PALETTE[catDraft.colorIdx].color}" onclick="pickCatIcon('${ic}')"><i class="ti ${esc(ic)}" aria-hidden="true"></i></button>`).join('');
+}
+
+function pickCatColor(i) { catDraft.colorIdx = i; renderCatPickers(); }
+function pickCatIcon(ic) { catDraft.icon = ic; renderCatPickers(); }
+
+function refreshCatForm() {
+  const type = document.getElementById('cType').value;
+  const unitField = document.getElementById('cUnitField');
+  unitField.hidden = type === 'rolls';
+  document.getElementById('cUnitNote').textContent = type === 'rolls'
+    ? '' : `単価は「円/${document.getElementById('cUnit').value.trim() || '単位'}」で表示されます`;
+  const missing = [];
+  if (!document.getElementById('cName').value.trim()) missing.push('カテゴリ名');
+  if (type !== 'rolls' && !document.getElementById('cUnit').value.trim()) missing.push('単位');
+  document.getElementById('catSaveBtn').disabled = missing.length > 0;
+  document.getElementById('catHint').textContent = missing.length
+    ? `${missing.join('・')}を入力してください`
+    : document.getElementById('cType').disabled ? '記録があるカテゴリの計算方式は変更できません' : '';
+}
+
+function openCatModal() {
+  lastFocused = document.activeElement;
+  renderCatPickers();
+  document.getElementById('catOverlay').classList.add('open');
+  refreshCatForm();
+  setTimeout(() => document.getElementById('cName').focus(), 50);
+}
+
+function openCatAdd() {
+  catEditId = null;
+  catDraft = { colorIdx: userCats.length % PALETTE.length, icon: ICON_CHOICES[0] };
+  document.getElementById('catTitle').textContent = 'カテゴリを追加';
+  document.getElementById('cName').value = '';
+  document.getElementById('cUnit').value = '';
+  document.getElementById('cType').value = 'simple';
+  document.getElementById('cType').disabled = false;
+  document.getElementById('catDeleteBtn').hidden = true;
+  openCatModal();
+}
+
+function openCatEdit() {
+  const c = cat();
+  if (!isUserCat(c)) return;
+  catEditId = c.id;
+  const idx = PALETTE.findIndex(p => p.color === c.color);
+  catDraft = { colorIdx: idx >= 0 ? idx : 0, icon: c.icon };
+  document.getElementById('catTitle').textContent = 'カテゴリを編集';
+  document.getElementById('cName').value = c.label;
+  document.getElementById('cUnit').value = c.unitLabel;
+  document.getElementById('cType').value = c.type;
+  // 記録が残ったまま計算方式を変えると既存の単価と表示が食い違うため、変更させない
+  document.getElementById('cType').disabled = (db[c.id] || []).length > 0;
+  document.getElementById('catDeleteBtn').hidden = false;
+  openCatModal();
+}
+
+function closeCatModal() {
+  document.getElementById('catOverlay').classList.remove('open');
+  catEditId = null;
+  restoreFocus();
+}
+
+function saveCat() {
+  const label = document.getElementById('cName').value.trim();
+  const type = document.getElementById('cType').value;
+  const unit = type === 'rolls' ? 'm' : document.getElementById('cUnit').value.trim();
+  if (!label || !unit) { refreshCatForm(); return; }
+
+  const def = {
+    id: catEditId || newCatId(),
+    label, type, icon: catDraft.icon,
+    unitLabel: unit,
+    priceUnit: `円/${unit}`,
+    unitHelp: type === 'rolls' ? '' : `内容数（${unit}）`,
+    ...PALETTE[catDraft.colorIdx],
+  };
+  delete def.name; // パレットの色名はカテゴリ定義には持たせない
+
+  if (catEditId) {
+    userCats = userCats.map(c => c.id === catEditId ? def : c);
+  } else {
+    userCats.push(def);
+    activeCat = def.id;
+    sortBy = 'unitPrice';
+  }
+  persistCats();
+  rebuildCats();
+  closeCatModal();
+  render();
+}
+
+function askDeleteCat() {
+  const c = cat();
+  if (!isUserCat(c)) return;
+  const n = (db[c.id] || []).length;
+  const body = n > 0
+    ? `「${c.label}」と、登録されている${n}件の記録をまとめて削除します。この操作は取り消せません。`
+    : `「${c.label}」を削除します。この操作は取り消せません。`;
+  closeCatModal();
+  askConfirm('このカテゴリを削除しますか？', body, () => {
+    userCats = userCats.filter(u => u.id !== c.id);
+    delete db[c.id];
+    persistCats();
+    persist();
+    rebuildCats();
+    activeCat = BUILTIN_CATS[0].id;
+    sortBy = 'unitPrice';
+    render();
+  });
 }
 
 // --- フォーカスとキーボード ---
@@ -536,13 +765,19 @@ function restoreFocus() {
   else document.getElementById('addBtn').focus();
 }
 
-// 開いているオーバーレイのうち最も手前のもの（確認ダイアログが入力モーダルより上）
+// 開いているオーバーレイのうち最も手前のもの（確認ダイアログが他より上）
 function topOverlay() {
-  const confirmEl = document.getElementById('confirmOverlay');
-  const modalEl = document.getElementById('modalOverlay');
-  if (confirmEl.classList.contains('open')) return confirmEl;
-  if (modalEl.classList.contains('open')) return modalEl;
+  for (const id of ['confirmOverlay', 'catOverlay', 'modalOverlay']) {
+    const el = document.getElementById(id);
+    if (el.classList.contains('open')) return el;
+  }
   return null;
+}
+
+function closeOverlay(id) {
+  if (id === 'confirmOverlay') closeConfirm();
+  else if (id === 'catOverlay') closeCatModal();
+  else closeModal();
 }
 
 const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
@@ -553,14 +788,21 @@ document.addEventListener('keydown', e => {
 
   if (e.key === 'Escape') {
     e.preventDefault();
-    if (overlay.id === 'confirmOverlay') closeConfirm(); else closeModal();
+    closeOverlay(overlay.id);
     return;
   }
 
-  if (e.key === 'Enter' && overlay.id === 'modalOverlay' && e.target.tagName === 'INPUT') {
-    e.preventDefault();
-    if (!document.getElementById('btnSave').disabled) saveItem();
-    return;
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+    if (overlay.id === 'modalOverlay') {
+      e.preventDefault();
+      if (!document.getElementById('btnSave').disabled) saveItem();
+      return;
+    }
+    if (overlay.id === 'catOverlay') {
+      e.preventDefault();
+      if (!document.getElementById('catSaveBtn').disabled) saveCat();
+      return;
+    }
   }
 
   if (e.key === 'Tab') {
@@ -577,7 +819,17 @@ document.addEventListener('keydown', e => {
 
 document.getElementById('fName').addEventListener('input', refreshForm);
 document.getElementById('fPrice').addEventListener('input', refreshForm);
+document.getElementById('cName').addEventListener('input', refreshCatForm);
+document.getElementById('cUnit').addEventListener('input', refreshCatForm);
+document.getElementById('cType').addEventListener('change', refreshCatForm);
+document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+  const handler = confirmHandler;
+  confirmHandler = null;
+  if (handler) handler();      // 先に反映してから閉じる（消えた要素にフォーカスを戻さないため）
+  closeConfirm();
+});
 document.getElementById('modalOverlay').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
+document.getElementById('catOverlay').addEventListener('click', function(e) { if(e.target===this) closeCatModal(); });
 document.getElementById('confirmOverlay').addEventListener('click', function(e) { if(e.target===this) closeConfirm(); });
 
 applyTheme(CATS[0]);
