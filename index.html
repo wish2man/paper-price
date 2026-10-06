@@ -26,6 +26,8 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 .topbar { background: var(--surface1); border-bottom: 1px solid var(--border); padding: 14px 16px 0; position: sticky; top: 0; z-index: 10; }
 .topbar-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .app-title { font-size: 17px; font-weight: 500; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.topbar-actions .icon-btn { padding: 7px 9px; font-size: 16px; }
 .tabs { display: flex; overflow-x: auto; gap: 0; scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
 .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 14px; background: none; border: none; border-bottom: 2.5px solid transparent; cursor: pointer; font-family: var(--font); white-space: nowrap; transition: border-color 0.15s; min-width: 64px; }
@@ -35,6 +37,8 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 .tab.active { border-bottom-color: var(--tc); }
 .tab .tab-count { font-size: 10px; padding: 1px 7px; border-radius: 99px; background: var(--surface3); color: var(--text-muted); }
 .tab.active .tab-count { background: var(--tbg); color: var(--tt); }
+.tab-add .tab-icon, .tab-add .tab-label { color: var(--text-muted); }
+.tab-add:hover .tab-icon, .tab-add:hover .tab-label { color: var(--text-secondary); }
 
 .body { padding: 16px; max-width: 680px; width: 100%; margin: 0 auto; }
 
@@ -64,6 +68,11 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 .item-name { font-size: 14px; font-weight: 500; }
 .store-badge { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--surface3); color: var(--text-secondary); display: flex; align-items: center; gap: 3px; }
 .pricey-badge { font-size: 10px; padding: 2px 7px; border-radius: 99px; background: rgba(226,75,74,0.15); color: #f09595; }
+.trend-chip { font-size: 10px; padding: 2px 8px; border-radius: 99px; border: none; cursor: pointer; font-family: var(--font);
+  display: inline-flex; align-items: center; gap: 3px; }
+.trend-chip.up { background: rgba(226,75,74,0.15); color: #f09595; }
+.trend-chip.down { background: rgba(45,212,160,0.14); color: #6ee7c4; }
+.trend-chip.flat { background: var(--surface3); color: var(--text-secondary); }
 .item-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.6; }
 .bar-row { display: flex; align-items: center; gap: 10px; }
 .bar-track { height: 5px; background: var(--surface3); border-radius: 99px; overflow: hidden; flex: 1; }
@@ -106,6 +115,33 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 .calc-label { font-size: 13px; color: var(--tt); }
 .calc-value { font-size: 22px; font-weight: 500; color: var(--tc); }
 .calc-unit { font-size: 13px; color: var(--tt); }
+.form-hint { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+.form-hint:empty { display: none; }
+.field-note { font-size: 11px; color: var(--text-muted); }
+.field-note:empty { display: none; }
+
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatch { width: 30px; height: 30px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; padding: 0; }
+.swatch[aria-checked="true"] { border-color: var(--text-primary); }
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 6px; }
+.icon-opt { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 18px; border-radius: 8px;
+  background: var(--surface3); border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; padding: 0; }
+.icon-opt[aria-checked="true"] { border-color: var(--pick); color: var(--pick); background: var(--surface1); }
+
+.hist-sub { font-size: 12px; color: var(--text-muted); }
+.spark-wrap { background: var(--surface1); border-radius: var(--radius); padding: 12px 12px 8px; }
+.spark-wrap svg { display: block; width: 100%; height: auto; }
+.spark-cap { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+.hist-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.hist-table th { text-align: left; font-weight: 400; color: var(--text-muted); font-size: 11px; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.hist-table th.num, .hist-table td.num { text-align: right; white-space: nowrap; }
+.hist-table td { padding: 8px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+.hist-table tr.current td { color: var(--text-primary); }
+.hist-scroll { overflow-x: auto; }
+
+.btn-danger { background: none; border: 1px solid rgba(226,75,74,0.4); border-radius: var(--radius); padding: 9px 16px;
+  font-size: 13px; color: #f09595; cursor: pointer; font-family: var(--font); margin-right: auto; }
+.btn-danger:hover { border-color: #f09595; }
 .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
 .btn-cancel { background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 9px 20px; font-size: 13px; color: var(--text-secondary); cursor: pointer; font-family: var(--font); }
 .btn-save { border: none; border-radius: var(--radius); padding: 9px 24px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: var(--font); background: var(--tc); color: #fff; transition: opacity 0.15s; }
@@ -120,6 +156,11 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 .confirm-actions { display: flex; gap: 10px; }
 .confirm-cancel { flex: 1; background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 9px; font-size: 13px; color: var(--text-secondary); cursor: pointer; font-family: var(--font); }
 .confirm-delete { flex: 1; background: rgba(226,75,74,0.8); border: none; border-radius: var(--radius); padding: 9px; font-size: 13px; font-weight: 500; color: #fff; cursor: pointer; font-family: var(--font); }
+
+@media (max-width: 400px) {
+  .field-row { grid-template-columns: 1fr; }
+  .hist-table th, .hist-table td { padding: 7px 5px; font-size: 11px; }
+}
 </style>
 </head>
 <body>
@@ -127,9 +168,14 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
   <div class="topbar" id="topbar">
     <div class="topbar-row">
       <span class="app-title">単価かんたん比較</span>
-      <button class="add-btn" id="addBtn" onclick="openAdd()">
-        <i class="ti ti-plus" aria-hidden="true"></i>追加
-      </button>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="catEditBtn" aria-label="カテゴリを編集" hidden onclick="openCatEdit()">
+          <i class="ti ti-settings" aria-hidden="true"></i>
+        </button>
+        <button class="add-btn" id="addBtn" onclick="openAdd()">
+          <i class="ti ti-plus" aria-hidden="true"></i>追加
+        </button>
+      </div>
     </div>
     <div class="tabs" id="tabsEl"></div>
   </div>
@@ -137,33 +183,34 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-header">
       <span class="modal-title" id="modalTitle">商品を追加</span>
-      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+      <button class="modal-close" aria-label="閉じる" onclick="closeModal()"><i class="ti ti-x" aria-hidden="true"></i></button>
     </div>
     <div class="modal-body">
       <div class="field-row">
         <div class="field">
-          <label>商品名 *</label>
+          <label for="fName">商品名 *</label>
           <input id="fName" type="text" placeholder="例：エリエール 200組">
         </div>
         <div class="field">
-          <label>店舗名</label>
-          <input id="fStore" type="text" placeholder="例：イオン">
+          <label for="fStore">店舗名</label>
+          <input id="fStore" type="text" placeholder="例：イオン" list="storeList" autocomplete="off">
+          <datalist id="storeList"></datalist>
         </div>
       </div>
       <div class="field">
-        <label>購入価格（円）*</label>
-        <input id="fPrice" type="number" min="0" placeholder="例：398">
+        <label for="fPrice">購入価格（円）*</label>
+        <input id="fPrice" type="number" min="0" step="any" inputmode="decimal" placeholder="例：398">
       </div>
       <div id="qtyFields"></div>
       <div class="field">
-        <label>購入日時</label>
+        <label for="fDatetime">購入日時</label>
         <input id="fDatetime" type="datetime-local">
       </div>
       <div class="field">
-        <label>メモ（任意）</label>
+        <label for="fNote">メモ（任意）</label>
         <input id="fNote" type="text" placeholder="例：セール品">
       </div>
       <div class="calc-preview" id="calcPreview" style="display:none">
@@ -171,6 +218,7 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
         <span class="calc-value" id="calcValue"></span>
         <span class="calc-unit" id="calcUnit"></span>
       </div>
+      <div class="form-hint" id="formHint" role="status" aria-live="polite"></div>
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal()">キャンセル</button>
@@ -179,10 +227,64 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
   </div>
 </div>
 
+<div class="modal-overlay" id="catOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="catTitle">
+    <div class="modal-header">
+      <span class="modal-title" id="catTitle">カテゴリを追加</span>
+      <button class="modal-close" aria-label="閉じる" onclick="closeCatModal()"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label for="cName">カテゴリ名 *</label>
+        <input id="cName" type="text" maxlength="12" placeholder="例：洗剤">
+      </div>
+      <div class="field">
+        <label for="cType">計算方式</label>
+        <select id="cType">
+          <option value="simple">数量で割る（例：1袋30回ぶん）</option>
+          <option value="rolls">ロール数 × 長さで割る（円/m）</option>
+        </select>
+      </div>
+      <div class="field" id="cUnitField">
+        <label for="cUnit">単位 *</label>
+        <input id="cUnit" type="text" maxlength="6" placeholder="例：回">
+        <span class="field-note" id="cUnitNote"></span>
+      </div>
+      <div class="field">
+        <label id="cColorLabel">色</label>
+        <div class="swatches" id="cColors" role="radiogroup" aria-labelledby="cColorLabel"></div>
+      </div>
+      <div class="field">
+        <label id="cIconLabel">アイコン</label>
+        <div class="icon-grid" id="cIcons" role="radiogroup" aria-labelledby="cIconLabel"></div>
+      </div>
+      <div class="form-hint" id="catHint" role="status" aria-live="polite"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" id="catDeleteBtn" hidden onclick="askDeleteCat()">削除</button>
+      <button class="btn-cancel" onclick="closeCatModal()">キャンセル</button>
+      <button class="btn-save" id="catSaveBtn" onclick="saveCat()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="histOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="histTitle">
+    <div class="modal-header">
+      <span class="modal-title" id="histTitle">単価の推移</span>
+      <button class="modal-close" aria-label="閉じる" onclick="closeHistory()"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body" id="histBody"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeHistory()">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <div class="confirm-overlay" id="confirmOverlay">
-  <div class="confirm-box">
+  <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
     <div class="confirm-icon"><i class="ti ti-trash" aria-hidden="true"></i></div>
-    <div class="confirm-title">この商品を削除しますか？</div>
+    <div class="confirm-title" id="confirmTitle">この商品を削除しますか？</div>
     <div class="confirm-body" id="confirmBody"></div>
     <div class="confirm-actions">
       <button class="confirm-cancel" onclick="closeConfirm()">キャンセル</button>
@@ -192,7 +294,7 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 </div>
 
 <script>
-const CATS = [
+const BUILTIN_CATS = [
   { id:'tissue',  label:'ティッシュ',       icon:'ti-box',       priceUnit:'円/組',  unitLabel:'組',  unitHelp:'1箱の組数（例：200）', type:'simple',
     color:'#5b9cf6', bg:'rgba(91,156,246,0.12)', border:'rgba(91,156,246,0.3)', text:'#8eb8fa' },
   { id:'toilet',  label:'トイレット',        icon:'ti-roll',      priceUnit:'円/m',   unitLabel:'m',   unitHelp:'', type:'rolls',
@@ -205,17 +307,51 @@ const CATS = [
     color:'#a89fc8', bg:'rgba(168,159,200,0.12)', border:'rgba(168,159,200,0.3)', text:'#c4bedd' },
 ];
 
+// ユーザー定義カテゴリで選べる配色。applyTheme が使う4値をまとめて持つ。
+const PALETTE = [
+  { name:'青',   color:'#5b9cf6', bg:'rgba(91,156,246,0.12)',  border:'rgba(91,156,246,0.3)',  text:'#8eb8fa' },
+  { name:'緑',   color:'#2dd4a0', bg:'rgba(45,212,160,0.12)',  border:'rgba(45,212,160,0.3)',  text:'#6ee7c4' },
+  { name:'橙',   color:'#f07a52', bg:'rgba(240,122,82,0.12)',  border:'rgba(240,122,82,0.3)',  text:'#f5a382' },
+  { name:'黄',   color:'#e6b84a', bg:'rgba(230,184,74,0.12)',  border:'rgba(230,184,74,0.3)',  text:'#f0d080' },
+  { name:'紫',   color:'#a89fc8', bg:'rgba(168,159,200,0.12)', border:'rgba(168,159,200,0.3)', text:'#c4bedd' },
+  { name:'桃',   color:'#e86a9b', bg:'rgba(232,106,155,0.12)', border:'rgba(232,106,155,0.3)', text:'#f097ba' },
+  { name:'水色', color:'#4fb8d8', bg:'rgba(79,184,216,0.12)',  border:'rgba(79,184,216,0.3)',  text:'#8ad2e8' },
+  { name:'黄緑', color:'#8fc44a', bg:'rgba(143,196,74,0.12)',  border:'rgba(143,196,74,0.3)',  text:'#b4d983' },
+];
+
+const ICON_CHOICES = [
+  'ti-package','ti-box','ti-bottle','ti-droplet','ti-cup','ti-coffee',
+  'ti-apple','ti-bread','ti-milk','ti-egg','ti-meat','ti-fish',
+  'ti-shopping-bag','ti-shopping-cart','ti-paw','ti-pill','ti-leaf','ti-flame',
+];
+
 const STORAGE_KEY = 'paper_price_v3';
+const CAT_KEY = 'paper_price_cats_v1';
+
 let db = {};
 try { db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) {}
 function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); } catch(e) {} }
 
+// カテゴリ定義は別キーに保存し、db は {カテゴリid: [記録]} のまま変更しない
+let userCats = [];
+try { userCats = JSON.parse(localStorage.getItem(CAT_KEY) || '[]'); } catch(e) {}
+if (!Array.isArray(userCats)) userCats = [];
+function persistCats() { try { localStorage.setItem(CAT_KEY, JSON.stringify(userCats)); } catch(e) {} }
+
+let CATS = [];
+function rebuildCats() { CATS = [...BUILTIN_CATS, ...userCats]; }
+rebuildCats();
+
 let activeCat = CATS[0].id;
 let sortBy = 'unitPrice';
 let editId = null;
-let deleteTarget = null;
+let lastFocused = null;
+let confirmHandler = null;
+let catEditId = null;
+let catDraft = { colorIdx: 0, icon: 'ti-package' };
 
-function cat() { return CATS.find(c => c.id === activeCat); }
+function cat() { return CATS.find(c => c.id === activeCat) || BUILTIN_CATS[0]; }
+function isUserCat(c) { return !BUILTIN_CATS.some(b => b.id === c.id); }
 function items() { return db[activeCat] || []; }
 
 function applyTheme(c) {
@@ -239,11 +375,12 @@ function calcUnit(c, price, qty, rolls, meters) {
   return p / q;
 }
 
-function nowLocal() {
-  const d = new Date();
-  d.setSeconds(0, 0);
-  return d.toISOString().slice(0, 16);
+function toLocalInput(d) {
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
+
+function nowLocal() { return toLocalInput(new Date()); }
 
 function fmtDatetime(iso) {
   if (!iso) return '';
@@ -257,16 +394,106 @@ function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// --- 同一商品の価格推移 ---
+
+// 商品名と店舗名で同じ商品とみなす（全角空白と大小文字の差は無視）
+function norm(s) { return String(s||'').replace(/[\s　]+/g, ' ').trim().toLowerCase(); }
+function histKey(i) { return `${norm(i.name)}|${norm(i.store)}`; }
+function itemTime(i) { return new Date(i.datetime || i.addedAt || 0).getTime() || 0; }
+
+// キーごとに、古い順に並べた記録をまとめる
+function historyGroups(list) {
+  const g = new Map();
+  list.forEach(i => {
+    const k = histKey(i);
+    if (!g.has(k)) g.set(k, []);
+    g.get(k).push(i);
+  });
+  g.forEach(arr => arr.sort((a,b) => itemTime(a)-itemTime(b)));
+  return g;
+}
+
+// 単系列・時系列なので折れ線。凡例は持たず、直接ラベルは最新の点だけに付ける。
+function sparkline(points, color) {
+  const W = 300, H = 72, padX = 12, padT = 14, padB = 12;
+  const us = points.map(p => p.unitPrice || 0);
+  const min = Math.min(...us), max = Math.max(...us);
+  const span = (max - min) || Math.max(max, 1);
+  const n = points.length;
+  const x = i => n === 1 ? W/2 : padX + i*(W - 2*padX)/(n - 1);
+  const y = v => (max === min) ? H/2 : H - padB - ((v - min)/span)*(H - padT - padB);
+
+  const d = points.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(p.unitPrice||0).toFixed(1)}`).join(' ');
+  const dots = points.map((p, i) => {
+    const last = i === n - 1;
+    return `<circle cx="${x(i).toFixed(1)}" cy="${y(p.unitPrice||0).toFixed(1)}" r="${last ? 4.5 : 3.5}"
+      fill="${last ? color : 'var(--surface1)'}" stroke="${color}" stroke-width="2">
+      <title>${esc(fmtDatetime(p.datetime) || '日時なし')}：${(p.unitPrice||0).toFixed(2)}</title></circle>`;
+  }).join('');
+  const lx = x(n-1), ly = y(us[n-1]);
+  const label = `<text x="${(lx > W*0.7 ? lx - 6 : lx + 6).toFixed(1)}" y="${Math.max(11, ly - 9).toFixed(1)}"
+    text-anchor="${lx > W*0.7 ? 'end' : 'start'}" fill="var(--text-primary)" font-size="11"
+    font-family="var(--font)">${us[n-1].toFixed(2)}</text>`;
+
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="単価の推移（${n}件、最安 ${min.toFixed(2)}／最高 ${max.toFixed(2)}）">
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}${label}
+  </svg>`;
+}
+
+function openHistory(id) {
+  const item = (db[activeCat]||[]).find(i => i.id === id);
+  if (!item) return;
+  const c = cat();
+  const group = historyGroups(items()).get(histKey(item)) || [item];
+  lastFocused = document.activeElement;
+
+  document.getElementById('histTitle').textContent = item.name;
+  const us = group.map(i => i.unitPrice || 0);
+  const min = Math.min(...us), max = Math.max(...us);
+  const rows = [...group].reverse().map(i => `<tr class="${i.id===item.id?'current':''}">
+    <td>${esc(fmtDatetime(i.datetime) || '—')}</td>
+    <td class="num">${parseFloat(i.price).toLocaleString()}円</td>
+    <td class="num">${c.type==='rolls' ? `${esc(i.rolls)}×${esc(i.meters)}m` : `${esc(i.qty)}${esc(c.unitLabel)}`}</td>
+    <td class="num">${(i.unitPrice||0).toFixed(2)}</td>
+  </tr>`).join('');
+
+  document.getElementById('histBody').innerHTML = `
+    <div class="hist-sub">${item.store ? esc(item.store) + '／' : ''}${group.length}件の記録</div>
+    <div class="spark-wrap">
+      ${sparkline(group, c.color)}
+      <div class="spark-cap">最安 ${min.toFixed(2)} ／ 最高 ${max.toFixed(2)}（${c.priceUnit}）・左が古い記録</div>
+    </div>
+    <div class="hist-scroll"><table class="hist-table">
+      <thead><tr><th>購入日時</th><th class="num">価格</th><th class="num">内容量</th><th class="num">単価</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+
+  document.getElementById('histOverlay').classList.add('open');
+  setTimeout(() => document.querySelector('#histOverlay .modal-close').focus(), 50);
+}
+
+function closeHistory() {
+  document.getElementById('histOverlay').classList.remove('open');
+  restoreFocus();
+}
+
 function renderTabs() {
-  document.getElementById('tabsEl').innerHTML = CATS.map(c => {
+  const tabs = CATS.map(c => {
     const count = (db[c.id] || []).length;
     const active = c.id === activeCat ? 'active' : '';
     return `<button class="tab ${active}" style="--tc:${c.color};--tbg:${c.bg};--tt:${c.text}" onclick="switchTab('${c.id}')">
-      <i class="ti ${c.icon} tab-icon" aria-hidden="true"></i>
-      <span class="tab-label">${c.label}</span>
+      <i class="ti ${esc(c.icon)} tab-icon" aria-hidden="true"></i>
+      <span class="tab-label">${esc(c.label)}</span>
       ${count > 0 ? `<span class="tab-count">${count}件</span>` : ''}
     </button>`;
-  }).join('');
+  });
+  tabs.push(`<button class="tab tab-add" aria-label="カテゴリを追加" onclick="openCatAdd()">
+    <i class="ti ti-plus tab-icon" aria-hidden="true"></i>
+    <span class="tab-label">追加</span>
+  </button>`);
+  document.getElementById('tabsEl').innerHTML = tabs.join('');
+  document.getElementById('catEditBtn').hidden = !isUserCat(cat());
 }
 
 function renderMain() {
@@ -283,8 +510,12 @@ function renderMain() {
   const n = sorted.length;
   const maxU = n > 0 ? Math.max(...sorted.map(i=>i.unitPrice||0)) : 0;
   const minU = n > 0 ? Math.min(...sorted.map(i=>i.unitPrice||0)) : 0;
-  const bestId = sorted[0]?.id;
-  const priceyId = sorted[n-1]?.id;
+  // 最安/割高の判定と順位は表示順ではなく単価順で決める
+  const byUnit = [...items()].sort((a,b) => (a.unitPrice||0)-(b.unitPrice||0));
+  const bestId = byUnit[0]?.id;
+  const priceyId = byUnit[n-1]?.id;
+  const unitRank = new Map(byUnit.map((i, idx) => [i.id, idx+1]));
+  const groups = historyGroups(items());
 
   let html = '';
 
@@ -309,24 +540,47 @@ function renderMain() {
     });
     html += `</div><div class="items">`;
 
-    sorted.forEach((item, idx) => {
+    sorted.forEach(item => {
       const isBest = item.id===bestId && n>1;
       const isPricey = item.id===priceyId && n>2;
-      const barW = maxU>0 ? Math.round(((maxU-(item.unitPrice||0)+minU)/maxU)*100) : 0;
+      const u = item.unitPrice||0;
+      // 最安を100%とした相対的な安さ（単価2倍なら50%）
+      const barW = u>0 ? Math.max(4, Math.round((minU/u)*100)) : 0;
       const meta = c.type==='rolls'
         ? `${parseFloat(item.price).toLocaleString()}円 ／ ${item.rolls}ロール × ${item.meters}m`
         : `${parseFloat(item.price).toLocaleString()}円 ／ ${item.qty}${c.unitLabel}`;
       const dtStr = item.datetime ? fmtDatetime(item.datetime) : '';
 
+      // 同じ商品名・店舗の記録が複数あるときだけ、ひとつ前の記録との差を出す
+      const group = groups.get(histKey(item)) || [];
+      let trend = '';
+      if (group.length > 1) {
+        const pos = group.indexOf(item);
+        const prev = pos > 0 ? group[pos-1] : null;
+        const prevU = prev && prev.unitPrice;
+        if (prevU > 0) {
+          const pct = ((u - prevU) / prevU) * 100;
+          const cls = Math.abs(pct) < 0.5 ? 'flat' : pct > 0 ? 'up' : 'down';
+          const text = cls === 'flat' ? '前回比 ±0%' : `前回比 ${pct > 0 ? '+' : '−'}${Math.abs(pct).toFixed(0)}%`;
+          const arrow = cls === 'flat' ? 'ti-minus' : cls === 'up' ? 'ti-arrow-up-right' : 'ti-arrow-down-right';
+          trend = `<button class="trend-chip ${cls}" onclick="openHistory('${item.id}')" title="単価の推移を見る">
+            <i class="ti ${arrow}" style="font-size:11px" aria-hidden="true"></i>${text}</button>`;
+        } else {
+          trend = `<button class="trend-chip flat" onclick="openHistory('${item.id}')" title="単価の推移を見る">
+            <i class="ti ti-chart-line" style="font-size:11px" aria-hidden="true"></i>推移${group.length}件</button>`;
+        }
+      }
+
       html += `<div class="item-card ${isBest?'best':''}">
         ${isBest ? '<div class="best-badge">最安値</div>' : ''}
         <div class="item-inner">
-          <div class="rank-num">${idx+1}</div>
+          <div class="rank-num" title="単価の安い順">${unitRank.get(item.id)}</div>
           <div class="item-body">
             <div class="item-name-row">
               <span class="item-name">${esc(item.name)}</span>
               ${item.store ? `<span class="store-badge"><i class="ti ti-building-store" style="font-size:11px" aria-hidden="true"></i>${esc(item.store)}</span>` : ''}
               ${isPricey ? '<span class="pricey-badge">割高</span>' : ''}
+              ${trend}
             </div>
             <div class="item-meta">
               ${meta}${item.note ? ' • '+esc(item.note) : ''}
@@ -334,7 +588,7 @@ function renderMain() {
             </div>
             <div class="bar-row">
               <div class="bar-track"><div class="bar-fill" style="width:${barW}%"></div></div>
-              <span class="unit-price ${isBest?'best':''}">${(item.unitPrice||0).toFixed(2)}<span class="unit-label">${c.priceUnit}</span></span>
+              <span class="unit-price ${isBest?'best':''}">${u.toFixed(2)}<span class="unit-label">${c.priceUnit}</span></span>
             </div>
           </div>
           <div class="item-actions">
@@ -366,19 +620,25 @@ function updateQtyFields() {
   const el = document.getElementById('qtyFields');
   if (c.type==='rolls') {
     el.innerHTML = `<div class="field-row">
-      <div class="field"><label>ロール数 *</label><input id="fRolls" type="number" min="0" placeholder="例：12"></div>
-      <div class="field"><label>1本の長さ（m）*</label><input id="fMeters" type="number" min="0" placeholder="例：25"></div>
+      <div class="field"><label for="fRolls">ロール数 *</label><input id="fRolls" type="number" min="0" step="any" inputmode="decimal" placeholder="例：12"></div>
+      <div class="field"><label for="fMeters">1本の長さ（m）*</label><input id="fMeters" type="number" min="0" step="any" inputmode="decimal" placeholder="例：25"></div>
     </div>`;
-    document.getElementById('fRolls').addEventListener('input', updateCalc);
-    document.getElementById('fMeters').addEventListener('input', updateCalc);
+    document.getElementById('fRolls').addEventListener('input', refreshForm);
+    document.getElementById('fMeters').addEventListener('input', refreshForm);
   } else {
-    el.innerHTML = `<div class="field"><label>${c.unitHelp} *</label><input id="fQty" type="number" min="0" placeholder="例：200"></div>`;
-    document.getElementById('fQty').addEventListener('input', updateCalc);
+    el.innerHTML = `<div class="field"><label for="fQty">${esc(c.unitHelp)} *</label><input id="fQty" type="number" min="0" step="any" inputmode="decimal" placeholder="例：200"></div>`;
+    document.getElementById('fQty').addEventListener('input', refreshForm);
   }
+}
+
+function updateStoreList() {
+  const stores = [...new Set(Object.values(db).flat().map(i => i && i.store).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja'));
+  document.getElementById('storeList').innerHTML = stores.map(s => `<option value="${esc(s)}"></option>`).join('');
 }
 
 function openAdd() {
   editId = null;
+  lastFocused = document.activeElement;
   document.getElementById('modalTitle').textContent = `商品を追加 — ${cat().label}`;
   document.getElementById('fName').value = '';
   document.getElementById('fStore').value = '';
@@ -386,8 +646,9 @@ function openAdd() {
   document.getElementById('fNote').value = '';
   document.getElementById('fDatetime').value = nowLocal();
   updateQtyFields();
-  document.getElementById('calcPreview').style.display = 'none';
+  updateStoreList();
   document.getElementById('modalOverlay').classList.add('open');
+  refreshForm();
   setTimeout(() => document.getElementById('fName').focus(), 50);
 }
 
@@ -395,13 +656,15 @@ function openEdit(id) {
   const item = (db[activeCat]||[]).find(i=>i.id===id);
   if (!item) return;
   editId = id;
+  lastFocused = document.activeElement;
   document.getElementById('modalTitle').textContent = `商品を編集 — ${cat().label}`;
   document.getElementById('fName').value = item.name||'';
   document.getElementById('fStore').value = item.store||'';
   document.getElementById('fPrice').value = item.price||'';
   document.getElementById('fNote').value = item.note||'';
-  document.getElementById('fDatetime').value = item.datetime || item.addedAt?.slice(0,16) || nowLocal();
+  document.getElementById('fDatetime').value = item.datetime || (item.addedAt ? toLocalInput(new Date(item.addedAt)) : nowLocal());
   updateQtyFields();
+  updateStoreList();
   const c = cat();
   if (c.type==='rolls') {
     document.getElementById('fRolls').value = item.rolls||'';
@@ -409,51 +672,63 @@ function openEdit(id) {
   } else {
     document.getElementById('fQty').value = item.qty||'';
   }
-  updateCalc();
   document.getElementById('modalOverlay').classList.add('open');
+  refreshForm();
+  setTimeout(() => document.getElementById('fName').focus(), 50);
 }
 
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('open');
   editId = null;
+  restoreFocus();
 }
 
-function updateCalc() {
+// 入力の検証と単価計算を一箇所に集約する。足りない項目名を返す。
+function formState() {
   const c = cat();
+  const missing = [];
+  const pos = v => parseFloat(v) > 0;
+  if (!document.getElementById('fName').value.trim()) missing.push('商品名');
   const price = document.getElementById('fPrice').value;
-  let u;
+  if (!pos(price)) missing.push('購入価格');
+  let qty='', rolls='', meters='';
   if (c.type==='rolls') {
-    u = calcUnit(c, price, null, document.getElementById('fRolls')?.value, document.getElementById('fMeters')?.value);
+    rolls = document.getElementById('fRolls')?.value||'';
+    meters = document.getElementById('fMeters')?.value||'';
+    if (!pos(rolls)) missing.push('ロール数');
+    if (!pos(meters)) missing.push('1本の長さ');
   } else {
-    u = calcUnit(c, price, document.getElementById('fQty')?.value, null, null);
+    qty = document.getElementById('fQty')?.value||'';
+    if (!pos(qty)) missing.push('数量');
   }
+  return { c, missing, unit: calcUnit(c, price, qty, rolls, meters), price, qty, rolls, meters };
+}
+
+function refreshForm() {
+  const st = formState();
   const prev = document.getElementById('calcPreview');
-  if (u !== null) {
-    document.getElementById('calcValue').textContent = u.toFixed(2);
-    document.getElementById('calcUnit').textContent = c.priceUnit;
+  if (st.unit !== null) {
+    document.getElementById('calcValue').textContent = st.unit.toFixed(2);
+    document.getElementById('calcUnit').textContent = st.c.priceUnit;
     prev.style.display = 'flex';
   } else {
     prev.style.display = 'none';
   }
+  const ok = st.missing.length === 0 && st.unit !== null;
+  document.getElementById('btnSave').disabled = !ok;
+  document.getElementById('formHint').textContent = ok ? ''
+    : st.missing.length ? `${st.missing.join('・')}を入力してください`
+    : '入力内容を確認してください';
 }
 
 function saveItem() {
-  const c = cat();
+  const st = formState();
+  if (st.missing.length || st.unit === null) { refreshForm(); return; }
+  const { unit: u, price, qty, rolls, meters } = st;
   const name = document.getElementById('fName').value.trim();
   const store = document.getElementById('fStore').value.trim();
-  const price = document.getElementById('fPrice').value;
   const note = document.getElementById('fNote').value.trim();
   const datetime = document.getElementById('fDatetime').value;
-  let qty='', rolls='', meters='', u;
-  if (c.type==='rolls') {
-    rolls = document.getElementById('fRolls')?.value||'';
-    meters = document.getElementById('fMeters')?.value||'';
-    u = calcUnit(c, price, null, rolls, meters);
-  } else {
-    qty = document.getElementById('fQty')?.value||'';
-    u = calcUnit(c, price, qty, null, null);
-  }
-  if (!name || !price || u===null) return;
 
   if (!db[activeCat]) db[activeCat] = [];
   if (editId) {
@@ -466,30 +741,233 @@ function saveItem() {
   render();
 }
 
+// 商品にもカテゴリにも使える確認ダイアログ
+function askConfirm(title, body, onYes) {
+  lastFocused = document.activeElement;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmBody').textContent = body;
+  confirmHandler = onYes;
+  document.getElementById('confirmOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('confirmDeleteBtn').focus(), 50);
+}
+
 function confirmDelete(id) {
   const item = (db[activeCat]||[]).find(i=>i.id===id);
   if (!item) return;
-  deleteTarget = id;
-  document.getElementById('confirmBody').textContent = `「${item.name}」を削除します。この操作は取り消せません。`;
-  document.getElementById('confirmDeleteBtn').onclick = () => { doDelete(); };
-  document.getElementById('confirmOverlay').classList.add('open');
-}
-
-function doDelete() {
-  if (!deleteTarget) return;
-  db[activeCat] = (db[activeCat]||[]).filter(i=>i.id!==deleteTarget);
-  persist();
-  closeConfirm();
-  render();
+  askConfirm('この商品を削除しますか？', `「${item.name}」を削除します。この操作は取り消せません。`, () => {
+    db[activeCat] = (db[activeCat]||[]).filter(i=>i.id!==id);
+    persist();
+    render();
+  });
 }
 
 function closeConfirm() {
   document.getElementById('confirmOverlay').classList.remove('open');
-  deleteTarget = null;
+  confirmHandler = null;
+  restoreFocus();
 }
 
-document.getElementById('fPrice').addEventListener('input', updateCalc);
+// --- カテゴリの追加・編集 ---
+
+function newCatId() {
+  return 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function renderCatPickers() {
+  document.getElementById('cColors').innerHTML = PALETTE.map((p, i) =>
+    `<button type="button" class="swatch" role="radio" aria-checked="${i===catDraft.colorIdx}" aria-label="${p.name}"
+      style="background:${p.color}" onclick="pickCatColor(${i})"></button>`).join('');
+  document.getElementById('cIcons').innerHTML = ICON_CHOICES.map(ic =>
+    `<button type="button" class="icon-opt" role="radio" aria-checked="${ic===catDraft.icon}" aria-label="${esc(ic)}"
+      style="--pick:${PALETTE[catDraft.colorIdx].color}" onclick="pickCatIcon('${ic}')"><i class="ti ${esc(ic)}" aria-hidden="true"></i></button>`).join('');
+}
+
+function pickCatColor(i) { catDraft.colorIdx = i; renderCatPickers(); }
+function pickCatIcon(ic) { catDraft.icon = ic; renderCatPickers(); }
+
+function refreshCatForm() {
+  const type = document.getElementById('cType').value;
+  const unitField = document.getElementById('cUnitField');
+  unitField.hidden = type === 'rolls';
+  document.getElementById('cUnitNote').textContent = type === 'rolls'
+    ? '' : `単価は「円/${document.getElementById('cUnit').value.trim() || '単位'}」で表示されます`;
+  const missing = [];
+  if (!document.getElementById('cName').value.trim()) missing.push('カテゴリ名');
+  if (type !== 'rolls' && !document.getElementById('cUnit').value.trim()) missing.push('単位');
+  document.getElementById('catSaveBtn').disabled = missing.length > 0;
+  document.getElementById('catHint').textContent = missing.length
+    ? `${missing.join('・')}を入力してください`
+    : document.getElementById('cType').disabled ? '記録があるカテゴリの計算方式は変更できません' : '';
+}
+
+function openCatModal() {
+  lastFocused = document.activeElement;
+  renderCatPickers();
+  document.getElementById('catOverlay').classList.add('open');
+  refreshCatForm();
+  setTimeout(() => document.getElementById('cName').focus(), 50);
+}
+
+function openCatAdd() {
+  catEditId = null;
+  catDraft = { colorIdx: userCats.length % PALETTE.length, icon: ICON_CHOICES[0] };
+  document.getElementById('catTitle').textContent = 'カテゴリを追加';
+  document.getElementById('cName').value = '';
+  document.getElementById('cUnit').value = '';
+  document.getElementById('cType').value = 'simple';
+  document.getElementById('cType').disabled = false;
+  document.getElementById('catDeleteBtn').hidden = true;
+  openCatModal();
+}
+
+function openCatEdit() {
+  const c = cat();
+  if (!isUserCat(c)) return;
+  catEditId = c.id;
+  const idx = PALETTE.findIndex(p => p.color === c.color);
+  catDraft = { colorIdx: idx >= 0 ? idx : 0, icon: c.icon };
+  document.getElementById('catTitle').textContent = 'カテゴリを編集';
+  document.getElementById('cName').value = c.label;
+  document.getElementById('cUnit').value = c.unitLabel;
+  document.getElementById('cType').value = c.type;
+  // 記録が残ったまま計算方式を変えると既存の単価と表示が食い違うため、変更させない
+  document.getElementById('cType').disabled = (db[c.id] || []).length > 0;
+  document.getElementById('catDeleteBtn').hidden = false;
+  openCatModal();
+}
+
+function closeCatModal() {
+  document.getElementById('catOverlay').classList.remove('open');
+  catEditId = null;
+  restoreFocus();
+}
+
+function saveCat() {
+  const label = document.getElementById('cName').value.trim();
+  const type = document.getElementById('cType').value;
+  const unit = type === 'rolls' ? 'm' : document.getElementById('cUnit').value.trim();
+  if (!label || !unit) { refreshCatForm(); return; }
+
+  const def = {
+    id: catEditId || newCatId(),
+    label, type, icon: catDraft.icon,
+    unitLabel: unit,
+    priceUnit: `円/${unit}`,
+    unitHelp: type === 'rolls' ? '' : `内容数（${unit}）`,
+    ...PALETTE[catDraft.colorIdx],
+  };
+  delete def.name; // パレットの色名はカテゴリ定義には持たせない
+
+  if (catEditId) {
+    userCats = userCats.map(c => c.id === catEditId ? def : c);
+  } else {
+    userCats.push(def);
+    activeCat = def.id;
+    sortBy = 'unitPrice';
+  }
+  persistCats();
+  rebuildCats();
+  closeCatModal();
+  render();
+}
+
+function askDeleteCat() {
+  const c = cat();
+  if (!isUserCat(c)) return;
+  const n = (db[c.id] || []).length;
+  const body = n > 0
+    ? `「${c.label}」と、登録されている${n}件の記録をまとめて削除します。この操作は取り消せません。`
+    : `「${c.label}」を削除します。この操作は取り消せません。`;
+  closeCatModal();
+  askConfirm('このカテゴリを削除しますか？', body, () => {
+    userCats = userCats.filter(u => u.id !== c.id);
+    delete db[c.id];
+    persistCats();
+    persist();
+    rebuildCats();
+    activeCat = BUILTIN_CATS[0].id;
+    sortBy = 'unitPrice';
+    render();
+  });
+}
+
+// --- フォーカスとキーボード ---
+
+function restoreFocus() {
+  const el = lastFocused;
+  lastFocused = null;
+  // 削除などで元の要素が消えている場合は「追加」ボタンへ戻す
+  if (el && el.isConnected && typeof el.focus === 'function') el.focus();
+  else document.getElementById('addBtn').focus();
+}
+
+// 開いているオーバーレイのうち最も手前のもの（確認ダイアログが他より上）
+function topOverlay() {
+  for (const id of ['confirmOverlay', 'catOverlay', 'histOverlay', 'modalOverlay']) {
+    const el = document.getElementById(id);
+    if (el.classList.contains('open')) return el;
+  }
+  return null;
+}
+
+function closeOverlay(id) {
+  if (id === 'confirmOverlay') closeConfirm();
+  else if (id === 'catOverlay') closeCatModal();
+  else if (id === 'histOverlay') closeHistory();
+  else closeModal();
+}
+
+const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
+
+document.addEventListener('keydown', e => {
+  const overlay = topOverlay();
+  if (!overlay) return;
+
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeOverlay(overlay.id);
+    return;
+  }
+
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+    if (overlay.id === 'modalOverlay') {
+      e.preventDefault();
+      if (!document.getElementById('btnSave').disabled) saveItem();
+      return;
+    }
+    if (overlay.id === 'catOverlay') {
+      e.preventDefault();
+      if (!document.getElementById('catSaveBtn').disabled) saveCat();
+      return;
+    }
+  }
+
+  if (e.key === 'Tab') {
+    const f = [...overlay.querySelectorAll(FOCUSABLE)].filter(el => el.offsetParent !== null);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length-1];
+    if (e.shiftKey && (document.activeElement === first || !overlay.contains(document.activeElement))) {
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault(); first.focus();
+    }
+  }
+});
+
+document.getElementById('fName').addEventListener('input', refreshForm);
+document.getElementById('fPrice').addEventListener('input', refreshForm);
+document.getElementById('cName').addEventListener('input', refreshCatForm);
+document.getElementById('cUnit').addEventListener('input', refreshCatForm);
+document.getElementById('cType').addEventListener('change', refreshCatForm);
+document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+  const handler = confirmHandler;
+  confirmHandler = null;
+  if (handler) handler();      // 先に反映してから閉じる（消えた要素にフォーカスを戻さないため）
+  closeConfirm();
+});
 document.getElementById('modalOverlay').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
+document.getElementById('catOverlay').addEventListener('click', function(e) { if(e.target===this) closeCatModal(); });
+document.getElementById('histOverlay').addEventListener('click', function(e) { if(e.target===this) closeHistory(); });
 document.getElementById('confirmOverlay').addEventListener('click', function(e) { if(e.target===this) closeConfirm(); });
 
 applyTheme(CATS[0]);
