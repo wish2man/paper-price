@@ -139,6 +139,20 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
 .hist-table tr.current td { color: var(--text-primary); }
 .hist-scroll { overflow-x: auto; }
 
+.text-btn { background: none; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 7px 12px;
+  font-size: 13px; color: var(--text-secondary); cursor: pointer; font-family: var(--font); white-space: nowrap; }
+.text-btn:hover { color: var(--text-primary); }
+
+.data-section { display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+  padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.data-section:last-of-type { border-bottom: none; padding-bottom: 0; }
+.data-head { font-size: 13px; font-weight: 500; }
+.data-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+.import-box { width: 100%; background: var(--surface1); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.import-box .data-desc { color: var(--text-secondary); }
+.import-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.import-error { font-size: 12px; color: #f09595; line-height: 1.6; }
+
 .btn-danger { background: none; border: 1px solid rgba(226,75,74,0.4); border-radius: var(--radius); padding: 9px 16px;
   font-size: 13px; color: #f09595; cursor: pointer; font-family: var(--font); margin-right: auto; }
 .btn-danger:hover { border-color: #f09595; }
@@ -169,6 +183,7 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
     <div class="topbar-row">
       <span class="app-title">単価かんたん比較</span>
       <div class="topbar-actions">
+        <button class="text-btn" id="dataBtn" onclick="openDataModal()">データ</button>
         <button class="icon-btn" id="catEditBtn" aria-label="カテゴリを編集" hidden onclick="openCatEdit()">
           <i class="ti ti-settings" aria-hidden="true"></i>
         </button>
@@ -281,6 +296,33 @@ html, body { background: var(--bg); color: var(--text-primary); font-family: var
   </div>
 </div>
 
+<div class="modal-overlay" id="dataOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dataTitle">
+    <div class="modal-header">
+      <span class="modal-title" id="dataTitle">データの書き出し・読み込み</span>
+      <button class="modal-close" aria-label="閉じる" onclick="closeDataModal()"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="data-section">
+        <div class="data-head">書き出す</div>
+        <div class="data-desc" id="dataSummary"></div>
+        <button class="btn-save" id="exportBtn" onclick="exportJson()">JSONファイルに書き出す</button>
+      </div>
+      <div class="data-section">
+        <div class="data-head">読み込む</div>
+        <div class="data-desc">書き出したJSONファイルを選ぶと、内容を確認してから取り込めます。</div>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+        <button class="btn-cancel" onclick="document.getElementById('importFile').click()">ファイルを選ぶ</button>
+        <div id="importPreview"></div>
+      </div>
+      <div class="form-hint" id="dataHint" role="status" aria-live="polite"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeDataModal()">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <div class="confirm-overlay" id="confirmOverlay">
   <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
     <div class="confirm-icon"><i class="ti ti-trash" aria-hidden="true"></i></div>
@@ -340,6 +382,9 @@ function persistCats() { try { localStorage.setItem(CAT_KEY, JSON.stringify(user
 
 let CATS = [];
 function rebuildCats() { CATS = [...BUILTIN_CATS, ...userCats]; }
+
+// 同一ミリ秒でも衝突しない記録ID（まとめて取り込むときに効く）
+function newItemId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 rebuildCats();
 
 let activeCat = CATS[0].id;
@@ -392,6 +437,211 @@ function fmtDatetime(iso) {
 
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// --- 書き出し・読み込み ---
+
+const EXPORT_FORMAT = 1;
+let importStaged = null;
+
+function itemSignature(i) {
+  return [norm(i.name), norm(i.store), i.price, i.qty, i.rolls, i.meters, i.datetime].join('\u0001');
+}
+
+function exportPayload() {
+  return {
+    app: 'paper-price',
+    format: EXPORT_FORMAT,
+    exportedAt: new Date().toISOString(),
+    categories: userCats,
+    records: db,
+  };
+}
+
+function countRecords(records) {
+  return Object.values(records || {}).reduce((n, arr) => n + (Array.isArray(arr) ? arr.length : 0), 0);
+}
+
+function exportJson() {
+  const blob = new Blob([JSON.stringify(exportPayload(), null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date(), q = n => String(n).padStart(2, '0');
+  a.href = url;
+  a.download = `paper-price-${d.getFullYear()}-${q(d.getMonth()+1)}-${q(d.getDate())}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  document.getElementById('dataHint').textContent = `${countRecords(db)}件を書き出しました`;
+}
+
+// 読み込んだ内容は信用せず、既知の項目だけを取り出して検証する
+function cleanItem(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const str = v => v === undefined || v === null ? '' : String(v);
+  const name = str(raw.name).trim();
+  const u = parseFloat(raw.unitPrice);
+  if (!name || !(u > 0)) return null;
+  return {
+    id: str(raw.id) || newItemId(),
+    name, store: str(raw.store).trim(), price: str(raw.price),
+    qty: str(raw.qty), rolls: str(raw.rolls), meters: str(raw.meters),
+    note: str(raw.note).trim(), datetime: str(raw.datetime),
+    unitPrice: u,
+    addedAt: str(raw.addedAt) || new Date().toISOString(),
+  };
+}
+
+function cleanCat(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const id = String(raw.id || '');
+  const label = String(raw.label || '').trim();
+  const type = raw.type === 'rolls' ? 'rolls' : 'simple';
+  // 組み込みカテゴリは上書きさせない
+  if (!id || !label || BUILTIN_CATS.some(b => b.id === id)) return null;
+  const unitLabel = String(raw.unitLabel || (type === 'rolls' ? 'm' : '')).trim() || '個';
+  const pal = PALETTE.find(pp => pp.color === raw.color) || PALETTE[0];
+  return {
+    id, label, type, unitLabel,
+    icon: ICON_CHOICES.includes(raw.icon) ? raw.icon : ICON_CHOICES[0],
+    priceUnit: String(raw.priceUnit || `円/${unitLabel}`),
+    unitHelp: type === 'rolls' ? '' : String(raw.unitHelp || `内容数（${unitLabel}）`),
+    color: pal.color, bg: pal.bg, border: pal.border, text: pal.text,
+  };
+}
+
+function parseImport(text) {
+  let raw;
+  try { raw = JSON.parse(text); } catch (e) { return { error: 'JSONとして読めませんでした。書き出したファイルか確認してください。' }; }
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return { error: 'このアプリの書き出しファイルではないようです。' };
+
+  // records を持つ書き出し形式と、localStorage をそのまま貼ったものの両方を受け付ける
+  let records = raw.records;
+  if (!records && Object.values(raw).every(v => Array.isArray(v))) records = raw;
+  if (!records || typeof records !== 'object') return { error: 'このアプリの書き出しファイルではないようです。' };
+
+  const cats = [];
+  (Array.isArray(raw.categories) ? raw.categories : []).forEach(c => {
+    const cc = cleanCat(c);
+    if (cc && !cats.some(x => x.id === cc.id)) cats.push(cc);
+  });
+
+  const known = new Set([...BUILTIN_CATS.map(b => b.id), ...cats.map(c => c.id)]);
+  const clean = {};
+  let dropped = 0, orphan = 0;
+  Object.entries(records).forEach(([cid, arr]) => {
+    if (!Array.isArray(arr)) return;
+    if (!known.has(cid)) { orphan += arr.length; return; }
+    clean[cid] = [];
+    arr.forEach(it => {
+      const ci = cleanItem(it);
+      if (ci) clean[cid].push(ci); else dropped++;
+    });
+  });
+
+  return { data: { categories: cats, records: clean }, dropped, orphan, exportedAt: raw.exportedAt };
+}
+
+function showImportPreview(res) {
+  const box = document.getElementById('importPreview');
+  if (res.error) {
+    importStaged = null;
+    box.innerHTML = `<div class="import-box"><div class="import-error">${esc(res.error)}</div></div>`;
+    return;
+  }
+  importStaged = res;
+  const n = countRecords(res.data.records);
+  const notes = [];
+  if (res.exportedAt) notes.push(`書き出し日時：${esc(fmtDatetime(res.exportedAt))}`);
+  if (res.dropped) notes.push(`${res.dropped}件は内容が不正なため取り込めません`);
+  if (res.orphan) notes.push(`${res.orphan}件は対応するカテゴリがないため取り込めません`);
+
+  box.innerHTML = `<div class="import-box">
+    <div class="data-desc">記録 ${n}件 ／ カテゴリ ${res.data.categories.length}件${notes.length ? '<br>' + notes.join('<br>') : ''}</div>
+    <div class="import-actions">
+      <button class="btn-save" ${n ? '' : 'disabled'} onclick="applyImport('merge')">今のデータに追加</button>
+      <button class="btn-danger" ${n ? '' : 'disabled'} onclick="confirmReplace()">今のデータを置き換え</button>
+    </div>
+    <div class="data-desc">「追加」は同じ内容の記録を二重に入れません。「置き換え」は今の記録をすべて消します。</div>
+  </div>`;
+}
+
+function confirmReplace() {
+  if (!importStaged) return;
+  const n = countRecords(importStaged.data.records);
+  askConfirm('今のデータを置き換えますか？',
+    `現在の${countRecords(db)}件の記録をすべて消して、ファイルの${n}件に置き換えます。この操作は取り消せません。`,
+    () => applyImport('replace'));
+}
+
+function applyImport(mode) {
+  if (!importStaged) return;
+  const { categories, records } = importStaged.data;
+
+  if (mode === 'replace') {
+    userCats = categories.map(c => ({ ...c }));
+    db = {};
+    Object.entries(records).forEach(([cid, arr]) => { db[cid] = arr.map(i => ({ ...i })); });
+    activeCat = BUILTIN_CATS[0].id;
+  } else {
+    categories.forEach(c => { if (!userCats.some(u => u.id === c.id)) userCats.push({ ...c }); });
+    let added = 0, skipped = 0;
+    Object.entries(records).forEach(([cid, arr]) => {
+      if (!db[cid]) db[cid] = [];
+      const seen = new Set(db[cid].map(itemSignature));
+      const ids = new Set(db[cid].map(i => i.id));
+      arr.forEach(i => {
+        const sig = itemSignature(i);
+        if (seen.has(sig)) { skipped++; return; }
+        const item = { ...i, id: ids.has(i.id) ? newItemId() : i.id };
+        db[cid].push(item);
+        seen.add(sig); ids.add(item.id);
+        added++;
+      });
+    });
+    importStaged.added = added;
+    importStaged.skipped = skipped;
+  }
+
+  persist();
+  persistCats();
+  rebuildCats();
+  if (!CATS.some(c => c.id === activeCat)) activeCat = BUILTIN_CATS[0].id;
+  sortBy = 'unitPrice';
+
+  const msg = mode === 'replace'
+    ? `${countRecords(db)}件に置き換えました`
+    : `${importStaged.added}件を追加しました${importStaged.skipped ? `（同じ内容の${importStaged.skipped}件は追加していません）` : ''}`;
+  importStaged = null;
+  document.getElementById('importFile').value = '';
+  document.getElementById('importPreview').innerHTML = '';
+  document.getElementById('dataHint').textContent = msg;
+  updateDataSummary();
+  render();
+}
+
+function updateDataSummary() {
+  const cats = Object.keys(db).filter(k => (db[k] || []).length).length;
+  document.getElementById('dataSummary').textContent =
+    `現在の記録：${countRecords(db)}件（${cats}カテゴリ）／ ユーザー定義カテゴリ：${userCats.length}件`;
+}
+
+function openDataModal() {
+  lastFocused = document.activeElement;
+  importStaged = null;
+  document.getElementById('importFile').value = '';
+  document.getElementById('importPreview').innerHTML = '';
+  document.getElementById('dataHint').textContent = '';
+  updateDataSummary();
+  document.getElementById('dataOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('exportBtn').focus(), 50);
+}
+
+function closeDataModal() {
+  document.getElementById('dataOverlay').classList.remove('open');
+  importStaged = null;
+  restoreFocus();
 }
 
 // --- 同一商品の価格推移 ---
@@ -734,7 +984,7 @@ function saveItem() {
   if (editId) {
     db[activeCat] = db[activeCat].map(i => i.id===editId ? {...i,name,store,price,qty,rolls,meters,note,datetime,unitPrice:u} : i);
   } else {
-    db[activeCat].push({id:Date.now().toString(),name,store,price,qty,rolls,meters,note,datetime,unitPrice:u,addedAt:new Date().toISOString()});
+    db[activeCat].push({id:newItemId(),name,store,price,qty,rolls,meters,note,datetime,unitPrice:u,addedAt:new Date().toISOString()});
   }
   persist();
   closeModal();
@@ -903,7 +1153,7 @@ function restoreFocus() {
 
 // 開いているオーバーレイのうち最も手前のもの（確認ダイアログが他より上）
 function topOverlay() {
-  for (const id of ['confirmOverlay', 'catOverlay', 'histOverlay', 'modalOverlay']) {
+  for (const id of ['confirmOverlay', 'catOverlay', 'histOverlay', 'dataOverlay', 'modalOverlay']) {
     const el = document.getElementById(id);
     if (el.classList.contains('open')) return el;
   }
@@ -914,6 +1164,7 @@ function closeOverlay(id) {
   if (id === 'confirmOverlay') closeConfirm();
   else if (id === 'catOverlay') closeCatModal();
   else if (id === 'histOverlay') closeHistory();
+  else if (id === 'dataOverlay') closeDataModal();
   else closeModal();
 }
 
@@ -968,6 +1219,16 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
 document.getElementById('modalOverlay').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
 document.getElementById('catOverlay').addEventListener('click', function(e) { if(e.target===this) closeCatModal(); });
 document.getElementById('histOverlay').addEventListener('click', function(e) { if(e.target===this) closeHistory(); });
+document.getElementById('dataOverlay').addEventListener('click', function(e) { if(e.target===this) closeDataModal(); });
+document.getElementById('importFile').addEventListener('change', function() {
+  const file = this.files && this.files[0];
+  if (!file) return;
+  document.getElementById('dataHint').textContent = '';
+  const reader = new FileReader();
+  reader.onload = () => showImportPreview(parseImport(String(reader.result)));
+  reader.onerror = () => showImportPreview({ error: 'ファイルを読み込めませんでした。' });
+  reader.readAsText(file);
+});
 document.getElementById('confirmOverlay').addEventListener('click', function(e) { if(e.target===this) closeConfirm(); });
 
 applyTheme(CATS[0]);
